@@ -61,7 +61,7 @@ if __name__ == '__main__':
                 os._exit(3)
         else:
             print jasonCrawler.startcrawling(trycount=20)
-        jasonParser = JasonWeiboParser(sys.argv[4])
+        jasonParser = JasonWeiboParser(jasonCrawler.wanted)
         jasonParser.startparsing()
         jasonParser.save()
         jasonParser.clean()
