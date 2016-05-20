@@ -25,11 +25,23 @@ class JasonWeiboCrawler:
     This class provides two modes to download weibo texts, single-thread and multi-thread.
     '''
 
-    def __init__(self, username, password, wanted):
-        self.username=username
-        self.password=password
-        self.cook = {"Cookie":self. login()}
-        self.wanted = wanted
+    def __init__(self, username, password):
+        self.username = username
+        self.password = password
+        self.cook = {"Cookie": self.login()}
+        self.wanted = self.getDisplayID()
+
+    def getDisplayID(self):
+        isneeded = False
+        while not isneeded:
+            html = self.getpage('http://weibo.cn/')
+            isneeded = self.ispageneeded(html)
+        selector = etree.HTML(html)
+        try:
+            displayid = selector.xpath('//div[@class="ut"]/a[2]/@href')[0]
+        except:
+            exit(-2)
+        return displayid.split('/')[1]
 
     def login(self):
         self.username = base64.b64encode(self.username.encode('utf-8')).decode('utf-8')
@@ -53,29 +65,29 @@ class JasonWeiboCrawler:
         }
         loginURL = r'https://login.sina.com.cn/sso/login.php?client=ssologin.js(v1.4.15)'
         session = requests.Session()
-        res = session.post(loginURL, data = postData)
+        res = session.post(loginURL, data=postData)
         jsonStr = res.content.decode('gbk')
         info = json.loads(jsonStr)
         if info["retcode"] == "0":
             cookies = session.cookies.get_dict()
             output = ''
-            for key,value in cookies.items():
-                output+=key + "=" + value+'; '
+            for key, value in cookies.items():
+                output += key + "=" + value + '; '
         else:
             exit(-1);
-        output=output.rstrip('; ')
+        output = output.rstrip('; ')
         return output
 
-    def geturl(self, pagenum=1,istest=False):
+    def geturl(self, pagenum=1, istest=False):
         url = 'http://weibo.cn/' + self.wanted
         if istest is False:
-            url+='/profile'
+            url += '/profile'
         if pagenum > 1:
             url = url + '?page=' + str(pagenum)
         return url
 
-    def getpagenum(self,istest=False):
-        url = self.geturl(pagenum=1,istest=istest)
+    def getpagenum(self, istest=False):
+        url = self.geturl(pagenum=1, istest=istest)
         html = requests.get(url, cookies=self.cook).content  # Visit the first page to get the page number.
         selector = etree.HTML(html)
         pagenum = selector.xpath('//input[@name="mp"]/@value')[0]
@@ -223,7 +235,7 @@ class JasonWeiboCrawler:
             isneeded = False
             html = ''
             while not isneeded and attempt < trycount:  # Give up when attempt to download same page exceeds the threshold.
-                html=self.getpage(self.geturl(i,istest=istest))
+                html = self.getpage(self.geturl(i, istest=istest))
                 isneeded = self.ispageneeded(html)
                 if not isneeded:
                     attempt += 1
@@ -267,11 +279,11 @@ class JasonWeiboCrawler:
         threads = pagenum / interval
         for i in range(0, threads):
             t = threading.Thread(target=self.threadcrawling,
-                                 args=(i * interval, (i + 1) * interval - 1, pagenum, trycount,istest))
+                                 args=(i * interval, (i + 1) * interval - 1, pagenum, trycount, istest))
             tasks.append(t)
             t.start()
         t = threading.Thread(target=self.threadcrawling,
-                             args=(pagenum - pagenum % interval, pagenum, pagenum, trycount,istest))
+                             args=(pagenum - pagenum % interval, pagenum, pagenum, trycount, istest))
         tasks.append(t)
         t.start()
         for t in tasks:
