@@ -7,8 +7,8 @@
 ############################################################
 # encoding: utf-8
 
-import sys
 import os
+import sys
 
 from JasonWeiboCrawler import JasonWeiboCrawler
 from JasonWeiboParser import JasonWeiboParser
@@ -45,10 +45,10 @@ if __name__ == '__main__':
     else:
         jasonCrawler = 0
         if sys.argv[3] == 'k':
-            jasonCrawler = JasonWeiboCrawler(sys.argv[1],sys.argv[2], 'dummy')
+            jasonCrawler = JasonWeiboCrawler(sys.argv[1], sys.argv[2], 'dummy')
             jasonCrawler.keywordcrawling(sys.argv[4])
         elif sys.argv[3] == 'u':
-            jasonCrawler = JasonWeiboCrawler(sys.argv[1],sys.argv[2], sys.argv[4])
+            jasonCrawler = JasonWeiboCrawler(sys.argv[1], sys.argv[2], sys.argv[4])
             if sys.argv[5] is not None:
                 if sys.argv[5] == 's':
                     try:

@@ -26,9 +26,10 @@ class JasonWeiboCrawler:
     '''
 
     def __init__(self, username, password, wanted):
-        self.username=username
-        self.password=password
-        self.cook = {"Cookie":self. login()}
+        self.username = username
+        self.password = password
+        # self.cook = {"Cookie":self. login()}
+        self.cook = self.login()
         self.wanted = wanted
 
     def login(self):
@@ -53,29 +54,30 @@ class JasonWeiboCrawler:
         }
         loginURL = r'https://login.sina.com.cn/sso/login.php?client=ssologin.js(v1.4.15)'
         session = requests.Session()
-        res = session.post(loginURL, data = postData)
+        res = session.post(loginURL, data=postData)
         jsonStr = res.content.decode('gbk')
         info = json.loads(jsonStr)
         if info["retcode"] == "0":
-            cookies = session.cookies.get_dict()
-            output = ''
-            for key,value in cookies.items():
-                output+=key + "=" + value+'; '
+            return session.cookies.get_dict()
+            # cookies = session.cookies.get_dict()
+            # output = ''
+            # for key,value in cookies.items():
+            #     output+=key + "=" + value+'; '
         else:
-            exit(-1);
-        output=output.rstrip('; ')
+            exit(-1)
+        output = output.rstrip('; ')
         return output
 
-    def geturl(self, pagenum=1,istest=False):
+    def geturl(self, pagenum=1, istest=False):
         url = 'http://weibo.cn/' + self.wanted
         if istest is False:
-            url+='/profile'
+            url += '/profile'
         if pagenum > 1:
             url = url + '?page=' + str(pagenum)
         return url
 
-    def getpagenum(self,istest=False):
-        url = self.geturl(pagenum=1,istest=istest)
+    def getpagenum(self, istest=False):
+        url = self.geturl(pagenum=1, istest=istest)
         html = requests.get(url, cookies=self.cook).content  # Visit the first page to get the page number.
         selector = etree.HTML(html)
         pagenum = selector.xpath('//input[@name="mp"]/@value')[0]
@@ -119,7 +121,7 @@ class JasonWeiboCrawler:
         '''
         realkeyword = urllib.quote(keyword)  # Handle the keyword in Chinese.
         try:
-            os.mkdir(sys.path[0] + '/keywords')
+            os.makedirs(sys.path[0] + '/keywords')
         except Exception, e:
             print str(e)
         weibos = []
@@ -179,7 +181,7 @@ class JasonWeiboCrawler:
         '''
         attempt = 0
         try:
-            os.mkdir(sys.path[0] + '/Weibo_raw/' + self.wanted)
+            os.makedirs(sys.path[0] + '/Weibo_raw/' + self.wanted)
         except Exception, e:
             print str(e)
         isdone = False
@@ -223,7 +225,7 @@ class JasonWeiboCrawler:
             isneeded = False
             html = ''
             while not isneeded and attempt < trycount:  # Give up when attempt to download same page exceeds the threshold.
-                html=self.getpage(self.geturl(i,istest=istest))
+                html = self.getpage(self.geturl(i, istest=istest))
                 isneeded = self.ispageneeded(html)
                 if not isneeded:
                     attempt += 1
@@ -249,7 +251,7 @@ class JasonWeiboCrawler:
         '''
         attempt = 0
         try:
-            os.mkdir(sys.path[0] + '/Weibo_raw/' + self.wanted)
+            os.makedirs(sys.path[0] + '/Weibo_raw/' + self.wanted)
         except Exception, e:
             print str(e)
         isdone = False
@@ -267,11 +269,11 @@ class JasonWeiboCrawler:
         threads = pagenum / interval
         for i in range(0, threads):
             t = threading.Thread(target=self.threadcrawling,
-                                 args=(i * interval, (i + 1) * interval - 1, pagenum, trycount,istest))
+                                 args=(i * interval, (i + 1) * interval - 1, pagenum, trycount, istest))
             tasks.append(t)
             t.start()
         t = threading.Thread(target=self.threadcrawling,
-                             args=(pagenum - pagenum % interval, pagenum, pagenum, trycount,istest))
+                             args=(pagenum - pagenum % interval, pagenum, pagenum, trycount, istest))
         tasks.append(t)
         t.start()
         for t in tasks:

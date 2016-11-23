@@ -1,11 +1,13 @@
 # coding=utf-8
-from lxml import etree
-import sys
-import os
-from Weibo import Weibo
-import re
 import datetime
 import json
+import os
+import re
+import sys
+
+from lxml import etree
+
+from Weibo import Weibo
 
 try:
     import xml.etree.cElementTree as ET
@@ -140,6 +142,10 @@ class JasonWeiboParser:
     def save(self):
         self.weibos = f5(self.weibos, lambda weibo: weibo['id'])
         self.weibos.sort(key=lambda weibo: datetime.datetime.strptime(weibo['time'], '%Y-%m-%d %H:%M:%S'), reverse=True)
+        try:
+            os.makedirs(sys.path[0] + '/Weibo_parsed/')
+        except OSError:
+            pass
         f = open(sys.path[0] + '/Weibo_parsed/' + self.uid + '.txt', 'w')
         jsonstr = json.dumps(self.weibos, indent=4, ensure_ascii=False)
         f.write(jsonstr)
